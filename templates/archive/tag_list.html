@@ -1,0 +1,47 @@
+{% extends 'archive/base.html' %}
+{% load static %}
+
+{% block title %}标签云 - 非遗数字档案{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb breadcrumb-custom">
+        <li class="breadcrumb-item"><a href="{% url 'archive:home' %}">首页</a></li>
+        <li class="breadcrumb-item active" aria-current="page">标签云</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<h2 class="section-title mb-5">标签云</h2>
+
+<div class="detail-content text-center py-5">
+    {% if tags %}
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-3">
+        {% for tag in tags %}
+        {% with size=tag.project_count %}
+        <a href="{% url 'archive:project_list' %}?tag={{ tag.slug }}"
+           class="text-decoration-none"
+           style="font-size: {% if size > 20 %}2rem{% elif size > 10 %}1.5rem{% elif size > 5 %}1.2rem{% else %}1rem{% endif %};
+                  color: {{ tag.color }};
+                  font-weight: {% if size > 10 %}600{% else %}400{% endif %};
+                  opacity: {% if size > 5 %}1{% else %}0.7{% endif %};
+                  transition: all 0.3s ease;
+                  padding: 0.5rem 0.75rem;
+                  border-radius: 8px;"
+           onmouseover="this.style.background='{{ tag.color }}22'; this.style.transform='translateY(-2px)';"
+           onmouseout="this.style.background='transparent'; this.style.transform='translateY(0)';">
+            {{ tag.name }}
+            <span class="small opacity-50">({{ tag.project_count }})</span>
+        </a>
+        {% endwith %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon"><i class="bi bi-hash"></i></div>
+        <h4>暂无标签</h4>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

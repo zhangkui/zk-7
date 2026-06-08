@@ -1,0 +1,213 @@
+{% extends 'archive/base.html' %}
+{% load static %}
+
+{% block title %}搜索结果 - 非遗数字档案{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb breadcrumb-custom">
+        <li class="breadcrumb-item"><a href="{% url 'archive:home' %}">首页</a></li>
+        <li class="breadcrumb-item active" aria-current="page">搜索</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="text-center mb-5">
+    <h2 class="section-title mx-auto mb-4" style="display: inline-block;">搜索结果</h2>
+    <form action="{% url 'archive:search' %}" method="get" class="row justify-content-center g-2 mb-4">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text" class="form-control form-control-lg" name="q" placeholder="搜索非遗项目、专题展陈..." value="{{ query }}" data-autocomplete>
+                <button class="btn btn-lg" type="submit" style="background: var(--primary-color); color: #fff;">
+                    <i class="bi bi-search me-1"></i>搜索
+                </button>
+            </div>
+        </div>
+    </form>
+
+    {% if query %}
+    <ul class="nav nav-pills justify-content-center mb-4">
+        <li class="nav-item">
+            <a class="nav-link {% if search_type == 'all' %}active{% endif %}"
+               href="?q={{ query }}&type=all"
+               style="{% if search_type == 'all' %}background: var(--primary-color);{% else %}color: var(--primary-color);{% endif %}">
+                全部
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if search_type == 'project' %}active{% endif %}"
+               href="?q={{ query }}&type=project"
+               style="{% if search_type == 'project' %}background: var(--primary-color);{% else %}color: var(--primary-color);{% endif %}">
+                非遗项目 {% if project_total is not None %}<span class="badge bg-light text-dark ms-1">{{ project_total }}</span>{% endif %}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if search_type == 'exhibition' %}active{% endif %}"
+               href="?q={{ query }}&type=exhibition"
+               style="{% if search_type == 'exhibition' %}background: var(--primary-color);{% else %}color: var(--primary-color);{% endif %}">
+                专题展陈 {% if exhibition_total is not None %}<span class="badge bg-light text-dark ms-1">{{ exhibition_total }}</span>{% endif %}
+            </a>
+        </li>
+    </ul>
+    {% endif %}
+</div>
+
+{% if query %}
+{% if search_type == 'all' or search_type == 'project' %}
+<div class="mb-5">
+    <h3 class="mb-4" style="font-family: var(--font-serif);">
+        <i class="bi bi-collection me-2" style="color: var(--primary-color);"></i>非遗项目
+        {% if project_total is not None %}
+        <small class="text-muted fs-6 ms-2">共 {{ project_total }} 个结果</small>
+        {% endif %}
+    </h3>
+    {% if projects %}
+    <div class="row g-4">
+        {% for project in projects %}
+        <div class="col-md-6 col-lg-3">
+            <a href="{% url 'archive:project_detail' project.pk %}" class="text-decoration-none">
+                <div class="card card-project h-100">
+                    <div class="card-img-wrapper" style="height: 150px;">
+                        {% if project.cover_image %}
+                        <img src="{{ project.cover_image.url }}" alt="{{ project.name }}">
+                        {% else %}
+                        <div class="d-flex align-items-center justify-content-center h-100 text-white">
+                            <i class="bi bi-image display-6 opacity-50"></i>
+                        </div>
+                        {% endif %}
+                        {% if project.category %}
+                        <span class="card-category-badge" style="font-size: 0.75rem;">{{ project.category.name }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title" style="font-size: 1rem;">{{ project.name }}</h5>
+                        <p class="card-text small">{{ project.overview|default:project.content|truncatechars:60 }}</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% if search_type == 'project' and total_pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?q={{ query }}&type=project&page={{ page|add:-1 }}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+            <li class="page-item disabled">
+                <span class="page-link">第 {{ page }} / {{ total_pages }} 页</span>
+            </li>
+            {% if has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?q={{ query }}&type=project&page={{ page|add:1 }}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% elif search_type == 'all' and project_total > 6 %}
+    <div class="text-center mt-4">
+        <a href="?q={{ query }}&type=project" class="btn btn-outline-primary" style="color: var(--primary-color); border-color: var(--primary-color);">
+            查看全部 {{ project_total }} 个非遗项目 <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="text-center text-muted py-4">
+        <i class="bi bi-search me-1"></i>未找到相关非遗项目
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if search_type == 'all' or search_type == 'exhibition' %}
+<div>
+    <h3 class="mb-4" style="font-family: var(--font-serif);">
+        <i class="bi bi-easel2 me-2" style="color: var(--primary-color);"></i>专题展陈
+        {% if exhibition_total is not None %}
+        <small class="text-muted fs-6 ms-2">共 {{ exhibition_total }} 个结果</small>
+        {% endif %}
+    </h3>
+    {% if exhibitions %}
+    <div class="row g-4">
+        {% for exhibition in exhibitions %}
+        <div class="col-md-6">
+            <a href="{% url 'archive:exhibition_detail' exhibition.pk %}" class="text-decoration-none">
+                <div class="card-exhibition" style="height: 200px;">
+                    {% if exhibition.banner_image %}
+                    <div class="exhibition-bg" style="background-image: url('{{ exhibition.banner_image.url }}');"></div>
+                    {% elif exhibition.cover_image %}
+                    <div class="exhibition-bg" style="background-image: url('{{ exhibition.cover_image.url }}');"></div>
+                    {% else %}
+                    <div class="exhibition-bg" style="background: linear-gradient(135deg, #8B2500, #4A2C1A);"></div>
+                    {% endif %}
+                    <div class="exhibition-overlay">
+                        <h4 class="exhibition-title" style="font-size: 1.2rem;">{{ exhibition.title }}</h4>
+                        {% if exhibition.subtitle %}
+                        <p class="small mb-0 opacity-90">{{ exhibition.subtitle }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% if search_type == 'exhibition' and total_pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?q={{ query }}&type=exhibition&page={{ page|add:-1 }}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+            <li class="page-item disabled">
+                <span class="page-link">第 {{ page }} / {{ total_pages }} 页</span>
+            </li>
+            {% if has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?q={{ query }}&type=exhibition&page={{ page|add:1 }}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% elif search_type == 'all' and exhibition_total > 6 %}
+    <div class="text-center mt-4">
+        <a href="?q={{ query }}&type=exhibition" class="btn btn-outline-primary" style="color: var(--primary-color); border-color: var(--primary-color);">
+            查看全部 {{ exhibition_total }} 个专题展陈 <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="text-center text-muted py-4">
+        <i class="bi bi-search me-1"></i>未找到相关专题展陈
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if not projects and not exhibitions %}
+<div class="empty-state" style="background: #FFF; border-radius: 16px;">
+    <div class="empty-icon"><i class="bi bi-search"></i></div>
+    <h4>没有找到相关结果</h4>
+    <p>试试其他关键词</p>
+</div>
+{% endif %}
+
+{% else %}
+<div class="empty-state" style="background: #FFF; border-radius: 16px;">
+    <div class="empty-icon"><i class="bi bi-search"></i></div>
+    <h4>请输入搜索关键词</h4>
+    <p>搜索非遗项目、传承人、专题展陈等内容</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends 'archive/base.html' %}
+{% load static %}
+
+{% block title %}{{ exhibition.title }} - 非遗数字档案{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" style="background: var(--bg-dark);">
+    <div class="container py-3">
+        <ol class="breadcrumb breadcrumb-custom mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'archive:home' %}" style="color: var(--secondary-color);">首页</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'archive:exhibition_list' %}" style="color: var(--secondary-color);">专题展陈</a></li>
+            <li class="breadcrumb-item active text-white-50">{{ exhibition.title }}</li>
+        </ol>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="exhibition-hero" style="{% if exhibition.banner_image %}background-image: url('{{ exhibition.banner_image.url }}');{% elif exhibition.cover_image %}background-image: url('{{ exhibition.cover_image.url }}');{% endif %}">
+    <div class="container py-5">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                {% if exhibition.curator %}
+                <p class="mb-2 opacity-75"><i class="bi bi-person-badge me-2"></i>策展人: {{ exhibition.curator }}</p>
+                {% endif %}
+                <h1 class="display-4 mb-3" style="font-family: var(--font-serif);">{{ exhibition.title }}</h1>
+                {% if exhibition.subtitle %}
+                <p class="lead mb-4 opacity-90">{{ exhibition.subtitle }}</p>
+                {% endif %}
+                {% if exhibition.start_date or exhibition.end_date %}
+                <p class="opacity-85 mb-0">
+                    <i class="bi bi-calendar3 me-2"></i>
+                    {% if exhibition.start_date %}{{ exhibition.start_date|date:"Y年m月d日" }}{% endif %}
+                    {% if exhibition.end_date %} - {{ exhibition.end_date|date:"Y年m月d日" }}{% endif %}
+                </p>
+                {% endif %}
+                <div class="d-flex gap-4 mt-3 opacity-85">
+                    <span><i class="bi bi-eye me-2"></i>{{ exhibition.view_count }} 次浏览</span>
+                    <span><i class="bi bi-collection me-2"></i>{{ items|length }} 个项目</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    {% if exhibition.description %}
+    <div class="detail-content">
+        <h3 class="detail-section-title">展览介绍</h3>
+        <div class="prose">{{ exhibition.description|linebreaks }}</div>
+    </div>
+    {% endif %}
+
+    {% if items %}
+    <div class="mt-5">
+        <h2 class="section-title mb-4">展陈内容</h2>
+        {% for item in items %}
+        {% if item.section_title and forloop.first %}
+        <div class="mb-4">
+            <h3 class="mb-3" style="font-family: var(--font-serif); color: var(--primary-color);">
+                {{ forloop.counter }}. {{ item.section_title }}
+            </h3>
+            {% if item.section_description %}
+            <p class="text-muted mb-4">{{ item.section_description }}</p>
+            {% endif %}
+        </div>
+        {% elif item.section_title %}
+        <hr class="section-divider">
+        <div class="mb-4">
+            <h3 class="mb-3" style="font-family: var(--font-serif); color: var(--primary-color);">
+                {{ forloop.counter }}. {{ item.section_title }}
+            </h3>
+            {% if item.section_description %}
+            <p class="text-muted mb-4">{{ item.section_description }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="row mb-5 align-items-center">
+            <div class="col-md-5 mb-3 mb-md-0">
+                <a href="{% url 'archive:project_detail' item.project.pk %}" class="text-decoration-none">
+                    <div class="card-project" style="height: 300px;">
+                        <div class="card-img-wrapper" style="height: 100%;">
+                            {% if item.project.cover_image %}
+                            <img src="{{ item.project.cover_image.url }}" alt="{{ item.project.name }}">
+                            {% else %}
+                            <div class="d-flex align-items-center justify-content-center h-100 text-white">
+                                <i class="bi bi-image display-1 opacity-50"></i>
+                            </div>
+                            {% endif %}
+                            {% if item.project.category %}
+                            <span class="card-category-badge">{{ item.project.category.name }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-7">
+                <a href="{% url 'archive:project_detail' item.project.pk %}" class="text-decoration-none text-dark">
+                    <h3 class="mb-2" style="font-family: var(--font-serif);">{{ item.project.name }}</h3>
+                </a>
+                {% if item.project.english_name %}
+                <p class="text-muted mb-3"><em>{{ item.project.english_name }}</em></p>
+                {% endif %}
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    {% for tag in item.project.tags.all|slice:5 %}
+                    <span class="tag-badge" style="background-color: {{ tag.color }};">{{ tag.name }}</span>
+                    {% endfor %}
+                </div>
+                <p class="mb-3">
+                    {% if item.project.overview %}
+                        {{ item.project.overview|truncatechars:200 }}
+                    {% else %}
+                        {{ item.project.content|default:"暂无详细介绍"|truncatechars:200 }}
+                    {% endif %}
+                </p>
+                <div class="d-flex gap-4 text-muted small">
+                    {% if item.project.region %}
+                    <span><i class="bi bi-geo-alt me-1"></i>{{ item.project.region }}</span>
+                    {% endif %}
+                    {% if item.project.inheritors %}
+                    <span><i class="bi bi-person me-1"></i>{{ item.project.inheritors }}</span>
+                    {% endif %}
+                    <span><i class="bi bi-eye me-1"></i>{{ item.project.view_count }}</span>
+                </div>
+                <a href="{% url 'archive:project_detail' item.project.pk %}" class="btn mt-3" style="background: var(--primary-color); color: #fff;">
+                    了解详情 <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state" style="background: #FFF; border-radius: 16px;">
+        <div class="empty-icon"><i class="bi bi-collection"></i></div>
+        <h4>暂无展陈项目</h4>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

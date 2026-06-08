@@ -1,0 +1,216 @@
+{% extends 'archive/base.html' %}
+{% load static %}
+
+{% block title %}首页 - 非遗数字档案{% endblock %}
+
+{% block hero %}
+<section class="hero-section">
+    <div class="container text-center py-5">
+        <h1 class="hero-title">非遗数字档案展示与检索系统</h1>
+        <p class="hero-subtitle">传承千年文脉 · 守护文化瑰宝</p>
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <form action="{% url 'archive:search' %}" method="get">
+                    <div class="search-box">
+                        <input type="text" class="form-control" name="q" placeholder="搜索非遗项目、传承人、专题展陈..." data-autocomplete>
+                        <button type="submit" class="btn btn-search ms-2">
+                            <i class="bi bi-search me-1"></i>搜索
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <h2 class="section-title mb-0">精选非遗项目</h2>
+        <a href="{% url 'archive:project_list' %}" class="text-decoration-none" style="color: var(--primary-color);">
+            查看全部 <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+    <div class="row g-4">
+        {% for project in featured_projects %}
+        <div class="col-md-6 col-lg-4">
+            <a href="{% url 'archive:project_detail' project.pk %}" class="text-decoration-none">
+                <div class="card card-project h-100">
+                    <div class="card-img-wrapper">
+                        {% if project.cover_image %}
+                        <img src="{{ project.cover_image.url }}" alt="{{ project.name }}" class="card-img-top">
+                        {% else %}
+                        <div class="d-flex align-items-center justify-content-center h-100 text-white">
+                            <i class="bi bi-image display-4 opacity-50"></i>
+                        </div>
+                        {% endif %}
+                        {% if project.category %}
+                        <span class="card-category-badge">{{ project.category.name }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">{{ project.name }}</h3>
+                        <p class="card-text">
+                            {% if project.overview %}
+                                {{ project.overview|truncatechars:100 }}
+                            {% else %}
+                                暂无项目概述
+                            {% endif %}
+                        </p>
+                        <div class="d-flex flex-wrap mb-2">
+                            {% for tag in project.tags.all|slice:3 %}
+                            <span class="tag-badge" style="background-color: {{ tag.color }};">{{ tag.name }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="card-meta">
+                            <span><i class="bi bi-geo-alt me-1"></i>{{ project.region|default:"未知" }}</span>
+                            <span><i class="bi bi-eye me-1"></i>{{ project.view_count }}</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="empty-state">
+                <div class="empty-icon"><i class="bi bi-collection"></i></div>
+                <h4>暂无项目</h4>
+                <p>请稍后再来查看</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<hr class="section-divider">
+
+<section class="py-5">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <h2 class="section-title mb-0">专题展陈</h2>
+        <a href="{% url 'archive:exhibition_list' %}" class="text-decoration-none" style="color: var(--primary-color);">
+            全部展陈 <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+    <div class="row g-4">
+        {% for exhibition in featured_exhibitions %}
+        <div class="col-md-6 col-lg-3">
+            <a href="{% url 'archive:exhibition_detail' exhibition.pk %}" class="text-decoration-none">
+                <div class="card-exhibition">
+                    {% if exhibition.banner_image %}
+                    <div class="exhibition-bg" style="background-image: url('{{ exhibition.banner_image.url }}');"></div>
+                    {% elif exhibition.cover_image %}
+                    <div class="exhibition-bg" style="background-image: url('{{ exhibition.cover_image.url }}');"></div>
+                    {% else %}
+                    <div class="exhibition-bg" style="background: linear-gradient(135deg, #8B2500, #D4A574);"></div>
+                    {% endif %}
+                    <div class="exhibition-overlay">
+                        <h3 class="exhibition-title">{{ exhibition.title }}</h3>
+                        {% if exhibition.subtitle %}
+                        <p class="mb-2 small opacity-75">{{ exhibition.subtitle }}</p>
+                        {% endif %}
+                        <p class="exhibition-desc mb-0">{{ exhibition.description|truncatechars:60 }}</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="empty-state">
+                <div class="empty-icon"><i class="bi bi-easel2"></i></div>
+                <h4>暂无专题展陈</h4>
+                <p>敬请期待</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<hr class="section-divider">
+
+<section class="py-5">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <h2 class="section-title mb-4">非遗类别</h2>
+            <div class="row g-3">
+                {% for category in categories %}
+                <div class="col-6 col-md-4 col-lg-3">
+                    <a href="{% url 'archive:project_list' %}?category={{ category.slug }}" class="category-card">
+                        <div class="category-icon">
+                            {% if category.category_type == 'folk_literature' %}
+                            <i class="bi bi-book"></i>
+                            {% elif category.category_type == 'traditional_music' %}
+                            <i class="bi bi-music-note-beamed"></i>
+                            {% elif category.category_type == 'traditional_dance' %}
+                            <i class="bi bi-person-standing-dress"></i>
+                            {% elif category.category_type == 'traditional_theater' %}
+                            <i class="bi bi-masks-theater"></i>
+                            {% elif category.category_type == 'traditional_acrobatics' %}
+                            <i class="bi bi-trophy"></i>
+                            {% elif category.category_type == 'traditional_art' %}
+                            <i class="bi bi-palette"></i>
+                            {% elif category.category_type == 'traditional_craft' %}
+                            <i class="bi bi-hammer"></i>
+                            {% elif category.category_type == 'traditional_medicine' %}
+                            <i class="bi bi-heart-pulse"></i>
+                            {% elif category.category_type == 'folk_custom' %}
+                            <i class="bi bi-balloon-heart"></i>
+                            {% else %}
+                            <i class="bi bi-collection"></i>
+                            {% endif %}
+                        </div>
+                        <div class="category-name">{{ category.name }}</div>
+                        <div class="category-count">{{ category.project_count }} 个项目</div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <h2 class="section-title mb-4">热门标签</h2>
+            <div class="sidebar-widget">
+                <div class="d-flex flex-wrap">
+                    {% for tag in popular_tags %}
+                    <a href="{% url 'archive:project_list' %}?tag={{ tag.slug }}" class="tag-badge" style="background-color: {{ tag.color }};">
+                        {{ tag.name }} <span class="opacity-75">({{ tag.project_count }})</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<hr class="section-divider">
+
+<section class="py-5">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <h2 class="section-title mb-0">最新收录</h2>
+    </div>
+    <div class="row g-4">
+        {% for project in recent_projects %}
+        <div class="col-md-6 col-lg-3">
+            <a href="{% url 'archive:project_detail' project.pk %}" class="text-decoration-none">
+                <div class="card card-project h-100">
+                    <div class="card-img-wrapper" style="height: 150px;">
+                        {% if project.cover_image %}
+                        <img src="{{ project.cover_image.url }}" alt="{{ project.name }}" class="card-img-top">
+                        {% else %}
+                        <div class="d-flex align-items-center justify-content-center h-100 text-white">
+                            <i class="bi bi-image display-6 opacity-50"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title" style="font-size: 1rem;">{{ project.name }}</h5>
+                        <p class="card-text small mb-0">
+                            <i class="bi bi-calendar me-1"></i>{{ project.created_at|date:"Y-m-d" }}
+                        </p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

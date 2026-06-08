@@ -1,0 +1,65 @@
+{% extends 'archive/base.html' %}
+{% load static %}
+
+{% block title %}分类浏览 - 非遗数字档案{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb breadcrumb-custom">
+        <li class="breadcrumb-item"><a href="{% url 'archive:home' %}">首页</a></li>
+        <li class="breadcrumb-item active" aria-current="page">分类浏览</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<h2 class="section-title mb-5">非遗分类浏览</h2>
+
+{% if grouped_categories %}
+{% for category_type, cats in grouped_categories.items %}
+<div class="mb-5">
+    <h3 class="mb-4 pb-2" style="font-family: var(--font-serif); border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem;">
+        <i class="bi bi-collection-fill me-2" style="color: var(--primary-color);"></i>{{ category_type }}
+    </h3>
+    <div class="row g-3">
+        {% for cat in cats %}
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="{% url 'archive:project_list' %}?category={{ cat.slug }}" class="category-card">
+                <div class="category-icon">
+                    {% if cat.category_type == 'folk_literature' %}
+                    <i class="bi bi-book"></i>
+                    {% elif cat.category_type == 'traditional_music' %}
+                    <i class="bi bi-music-note-beamed"></i>
+                    {% elif cat.category_type == 'traditional_dance' %}
+                    <i class="bi bi-person-standing-dress"></i>
+                    {% elif cat.category_type == 'traditional_theater' %}
+                    <i class="bi bi-masks-theater"></i>
+                    {% elif cat.category_type == 'traditional_acrobatics' %}
+                    <i class="bi bi-trophy"></i>
+                    {% elif cat.category_type == 'traditional_art' %}
+                    <i class="bi bi-palette"></i>
+                    {% elif cat.category_type == 'traditional_craft' %}
+                    <i class="bi bi-hammer"></i>
+                    {% elif cat.category_type == 'traditional_medicine' %}
+                    <i class="bi bi-heart-pulse"></i>
+                    {% elif cat.category_type == 'folk_custom' %}
+                    <i class="bi bi-balloon-heart"></i>
+                    {% else %}
+                    <i class="bi bi-collection"></i>
+                    {% endif %}
+                </div>
+                <div class="category-name">{{ cat.name }}</div>
+                <div class="category-count">{{ cat.project_count }} 个项目</div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="empty-state" style="background: #FFF; border-radius: 16px;">
+    <div class="empty-icon"><i class="bi bi-tags"></i></div>
+    <h4>暂无分类</h4>
+</div>
+{% endif %}
+{% endblock %}
